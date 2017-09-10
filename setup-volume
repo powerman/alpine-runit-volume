@@ -1,0 +1,45 @@
+#!/bin/sh
+usage() {
+	echo "Usage: $0 /data/dir /app/migrate.sh [command [arg …]]"
+	exit 1
+}
+
+die() {
+	echo $0: $1
+	exit 1
+}
+
+set_app_uidgid() {
+	echo "$APP_UID" | grep -q '[^0-9]' && die "APP_UID is not a number: '$APP_UID'"
+	echo "$APP_GID" | grep -q '[^0-9]' && die "APP_GID is not a number: '$APP_GID'"
+	APP_UID=$(( APP_UID ))
+	APP_GID=$(( APP_GID ))
+	if test $APP_UID -eq 0; then
+		APP_UID=$( stat -L -c %u "$datadir" )
+		APP_GID=$( stat -L -c %g "$datadir" )
+	fi
+	if test $APP_UID -eq 0; then
+		APP_UID=$(( RANDOM + 10000 ))
+		APP_GID=$APP_UID
+	fi
+}
+
+test $# -ge 2 || usage
+datadir="$1"
+migrate="$2"
+shift 2
+test -d "$datadir" || die "no such directory: '$datadir' (attach volume or change ENTRYPOINT)"
+test -x "$migrate" || die "migration command is not executable: '$migrate'"
+
+set_app_uidgid
+addgroup -g $APP_GID app        || die "addgroup failed"
+adduser -D -H -h "$datadir" \
+	-g app -s /bin/sh \
+	-G app -u $APP_UID app  || die "adduser failed"
+
+chown -L app:app "$datadir"     || die "chown failed"
+cd "$datadir"                   || die "cd failed"
+chpst -u app "$migrate"         || die "$migrate failed"
+
+test $# -eq 0 && set -- sh
+exec "$@"

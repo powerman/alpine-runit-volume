@@ -1,0 +1,3 @@
+#!/bin/sh
+sv force-shutdown /etc/service/*
+sv x .
