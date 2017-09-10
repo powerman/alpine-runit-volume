@@ -1,4 +1,5 @@
 # Docker base image to run microservice with a data volume
+[![Docker Automated buil](https://img.shields.io/docker/automated/powerman/alpine-runit-volume.svg)]() [![Docker Build Statu](https://img.shields.io/docker/build/powerman/alpine-runit-volume.svg)]()
 
 This base docker image is designed to:
 
