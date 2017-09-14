@@ -1,9 +1,4 @@
 #!/bin/sh
-usage() {
-	echo "Usage: $0 /data-dir [command [arg …]]"
-	exit 1
-}
-
 die() {
 	echo $0: $1
 	exit 1
@@ -15,8 +10,8 @@ set_app_uidgid() {
 	APP_UID=$(( APP_UID ))
 	APP_GID=$(( APP_GID ))
 	if test $APP_UID -eq 0; then
-		APP_UID=$( stat -L -c %u "$datadir" )
-		APP_GID=$( stat -L -c %g "$datadir" )
+		APP_UID=$( stat -L -c %u "$VOLUME_DIR" )
+		APP_GID=$( stat -L -c %g "$VOLUME_DIR" )
 	fi
 	if test $APP_UID -eq 0; then
 		APP_UID=$(( RANDOM + 10000 ))
@@ -24,18 +19,16 @@ set_app_uidgid() {
 	fi
 }
 
-test $# -ge 1                   || usage
-datadir="$1"
-shift
-test -d "$datadir"              || die "no such directory: '$datadir'"
+VOLUME_DIR=${VOLUME_DIR:-/data}
+test -d "$VOLUME_DIR"           || die "no such directory: '$VOLUME_DIR'"
 
 set_app_uidgid
 addgroup -g $APP_GID app        || die "addgroup failed"
-adduser -D -H -h "$datadir" \
+adduser -D -H -h "$VOLUME_DIR" \
 	-g app -s /bin/sh \
 	-G app -u $APP_UID app  || die "adduser failed"
 
-chown -L app:app "$datadir"     || die "chown failed"
+chown -L app:app "$VOLUME_DIR"  || die "chown failed"
 
-test $# -eq 0 && set -- sh
+unset VOLUME_DIR APP_UID APP_GID
 exec "$@"

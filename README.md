@@ -36,7 +36,7 @@ RUN ln -nsf /app/service/* /etc/service/
 CMD ["/app/my-pid-1-app"]
 
 # [OPTIONAL] Change default directory with volume (/data):
-ENTRYPOINT ["/sbin/setup-volume","/app/volume/dir"]
+ENV VOLUME_DIR=/app/volume/dir
 ```
 
 These environment variables can be provided when starting container:
@@ -46,6 +46,7 @@ These environment variables can be provided when starting container:
   - If `APP_UID=0` then it will be ignored.
   - Use values between 1000 and 60000 to avoid conflicts with existing
     accounts.
+- `VOLUME_DIR`: directory with data volume (`/data` by default)
 
 ## How it works
 
@@ -59,7 +60,8 @@ When container starts `/sbin/setup-volume` will be executed as
     if owner's UID is greater than 0
   - generate random UID/GID between 10000 and 42767 (inclusive)
 - ensure root directory of data volume belongs to user "app"
-  - default path for data volume is `/data`
+  - use path for data volume provided in environment variable `VOLUME_DIR`
+    or `/data` (if `VOLUME_DIR` is empty)
 - run `CMD`
 
 ## Alternatives
