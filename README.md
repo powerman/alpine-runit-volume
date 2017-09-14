@@ -1,5 +1,6 @@
 # Docker base image to run microservice with a data volume
-[![Docker Automated Build](https://img.shields.io/docker/automated/powerman/alpine-runit-volume.svg)](https://github.com/powerman/alpine-runit-volume) [![Docker Build Status](https://img.shields.io/docker/build/powerman/alpine-runit-volume.svg)](https://hub.docker.com/r/powerman/alpine-runit-volume/)
+[![Docker Automated Build](https://img.shields.io/docker/automated/powerman/alpine-runit-volume.svg)](https://github.com/powerman/alpine-runit-volume)
+[![Docker Build Status](https://img.shields.io/docker/build/powerman/alpine-runit-volume.svg)](https://hub.docker.com/r/powerman/alpine-runit-volume/)
 
 This base docker image is designed to:
 
@@ -19,9 +20,6 @@ This base docker image is designed to:
       UID/GID (to better isolate container's data and processes). When
       container will start next time using same volume it'll use same
       UID/GID.
-  - When container starts it may run microservice-specific command to
-    initialize/migrate data in volume directory before all other services
-    will start.
 - Be small and secure, thanks to Alpine Linux.
 
 ## Usage
@@ -33,14 +31,12 @@ FROM powerman/alpine-runit-volume
 COPY . /app
 
 # Either setup your runit services to run in /etc/service/:
-RUN ln -nsf /app/service /etc/service
+RUN ln -nsf /app/service/* /etc/service/
 # or run your microservice as PID1 (without runit):
 CMD ["/app/my-pid-1-app"]
 
 # [OPTIONAL] Change default directory with volume (/data):
-ENTRYPOINT ["/sbin/setup-volume","/app/volume/dir","/bin/true"]
-# [OPTIONAL] Set command to initialize/migrate volume data:
-ENTRYPOINT ["/sbin/setup-volume","/data","/app/migrate.sh"]
+ENTRYPOINT ["/sbin/setup-volume","/app/volume/dir"]
 ```
 
 These environment variables can be provided when starting container:
@@ -64,9 +60,6 @@ When container starts `/sbin/setup-volume` will be executed as
   - generate random UID/GID between 10000 and 42767 (inclusive)
 - ensure root directory of data volume belongs to user "app"
   - default path for data volume is `/data`
-- change current directory to root directory of data volume
-- run your command as user "app" to initialize/migrate data before
-  starting other processes (if you'll provide such command)
 - run `CMD`
 
 ## Alternatives

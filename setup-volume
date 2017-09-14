@@ -1,6 +1,6 @@
 #!/bin/sh
 usage() {
-	echo "Usage: $0 /data/dir /app/migrate.sh [command [arg …]]"
+	echo "Usage: $0 /data-dir [command [arg …]]"
 	exit 1
 }
 
@@ -24,12 +24,10 @@ set_app_uidgid() {
 	fi
 }
 
-test $# -ge 2 || usage
+test $# -ge 1                   || usage
 datadir="$1"
-migrate="$2"
-shift 2
-test -d "$datadir" || die "no such directory: '$datadir' (attach volume or change ENTRYPOINT)"
-test -x "$migrate" || die "migration command is not executable: '$migrate'"
+shift
+test -d "$datadir"              || die "no such directory: '$datadir'"
 
 set_app_uidgid
 addgroup -g $APP_GID app        || die "addgroup failed"
@@ -38,8 +36,6 @@ adduser -D -H -h "$datadir" \
 	-G app -u $APP_UID app  || die "adduser failed"
 
 chown -L app:app "$datadir"     || die "chown failed"
-cd "$datadir"                   || die "cd failed"
-chpst -u app "$migrate"         || die "$migrate failed"
 
 test $# -eq 0 && set -- sh
 exec "$@"
