@@ -50,8 +50,7 @@ These environment variables can be provided when starting container:
 
 ## How it works
 
-When container starts `/sbin/setup-volume` will be executed as
-`ENTRYPOINT` to:
+When container starts `setup-volume` will be executed as `ENTRYPOINT` to:
 
 - create user account "app"
   - use UID/GID provided in environment variables `APP_UID`/`APP_GID`
