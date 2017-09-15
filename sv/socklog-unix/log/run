@@ -1,0 +1,3 @@
+#!/bin/sh
+chown log /var/log
+exec chpst -u log svlogd /var/log/

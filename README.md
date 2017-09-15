@@ -12,7 +12,7 @@ This base docker image is designed to:
     container.
 - Handle persistent storage permissions and migrations:
   - Microservice can run as non-root account "app".
-  - Account "app" will be the owner of attached data volume directory.
+  - Account "app" is the owner of attached data volume directory.
     - In case of using bind mount this account will have same UID/GID as
       mounted directory - so you don't get files with unusual ownership in
       this directory as result of running container.
@@ -36,17 +36,29 @@ RUN ln -nsf /app/service/* /etc/service/
 CMD ["/app/my-pid-1-app"]
 
 # [OPTIONAL] Change default directory with volume (/data):
-ENV VOLUME_DIR=/app/volume/dir
+ENV VOLUME_DIR=/app/data
+
+# [OPTIONAL] Use cron service and setup /app/crontab for user "app":
+RUN set -ex -o pipefail; \
+    ln -s /etc/sv/dcron /etc/service/cron; \
+    install -m 0600 /app/crontab /etc/crontabs/app; \
+    echo app >> /etc/crontabs/cron.update
 ```
 
 These environment variables can be provided when starting container:
 
 - `APP_UID`, `APP_GID`: numeric UID/GID to be used for "app" account and
   to set ownership for root directory of attached volume.
-  - If `APP_UID=0` then it will be ignored.
-  - Use values between 1000 and 60000 to avoid conflicts with existing
-    accounts.
+  - If `APP_UID=0` then both will be ignored.
+  - I recommend to use values between 1000 and 60000 to avoid conflicts
+    with existing accounts.
 - `VOLUME_DIR`: directory with data volume (`/data` by default)
+
+To run your command using "app" account: `chpst -u app …` (use in your
+service's `./run` and `./finish` scripts).
+
+To gracefully shutdown container on essential service exit/crash add to
+that service's `./finish` script (run as root): `sv d /etc/sv/runsvdir`
 
 ## How it works
 
@@ -62,6 +74,10 @@ When container starts `setup-volume` will be executed as `ENTRYPOINT` to:
   - use path for data volume provided in environment variable `VOLUME_DIR`
     or `/data` (if `VOLUME_DIR` is empty)
 - run `CMD`
+
+If you'll replace `ENTRYPOINT` with your own script make sure it'll finish
+with `exec setup-volume "$@"` if it doesn't use account "app" or call
+`setup-volume true` before using account "app".
 
 ## Alternatives
 
