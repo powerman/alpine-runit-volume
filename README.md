@@ -60,6 +60,27 @@ service's `./run` and `./finish` scripts).
 To gracefully shutdown container on essential service exit/crash add to
 that service's `./finish` script (run as root): `sv d /etc/sv/runsvdir`
 
+By default, your service's STDOUT/STDERR will be sent to docker logs
+(using "stdout" log stream for both). To redirect your service's STDOUT to
+syslog you can pipe output of your service to `logger` tool using this
+`./log/run` script for your service:
+
+```sh
+#!/bin/sh
+sv start syslog >/dev/null 2>&1 || exit 1
+exec chpst -u app logger
+```
+
+Syslog service is enabled by default (unless you'll run your app as PID 1)
+and save logs into `/var/log/`. You can configure maximum log size and
+amount of old rotated log files (10 x 1MB files by default) and other
+features (duplicating selected log records to docker log, sending to
+network syslog by UDP, etc.) using
+[/var/log/config](http://smarden.org/runit/svlogd.8.html#sect6).
+
+If you enable `/etc/sv/dcron` service you can setup cron tasks using this
+[crontab format](https://github.com/dubiousjim/dcron/blob/master/crontab.markdown).
+
 ## How it works
 
 When container starts `setup-volume` will be executed as `ENTRYPOINT` to:
