@@ -58,7 +58,7 @@ To run your command using "app" account: `chpst -u app …` (use in your
 service's `./run` and `./finish` scripts).
 
 To gracefully shutdown container on essential service exit/crash add to
-that service's `./finish` script (run as root): `sv d /etc/sv/runsvdir`
+that service's `./finish` script (run as root): `sv stop /etc/sv/runsvdir`
 
 By default, your service's STDOUT/STDERR will be sent to docker logs
 (using "stdout" log stream for both). To redirect your service's STDOUT to
