@@ -24,8 +24,7 @@ test -d "$VOLUME_DIR"           || die "no such directory: '$VOLUME_DIR'"
 
 set_app_uidgid
 addgroup -g $APP_GID app        || die "addgroup failed"
-adduser -D -H -h "$VOLUME_DIR" \
-	-g app -s /bin/sh \
+adduser -g app -s /bin/sh -D \
 	-G app -u $APP_UID app  || die "adduser failed"
 
 chown -L app:app "$VOLUME_DIR"  || die "chown failed"
