@@ -23,9 +23,15 @@ VOLUME_DIR=${VOLUME_DIR:-/data}
 test -d "$VOLUME_DIR"           || die "no such directory: '$VOLUME_DIR'"
 
 set_app_uidgid
-addgroup -g $APP_GID app        || die "addgroup failed"
-adduser -g app -s /bin/sh -D \
-	-G app -u $APP_UID app  || die "adduser failed"
+if test -L $(which adduser); then # alpine
+	addgroup -g $APP_GID app                        || die "addgroup failed"
+	adduser -g app -s /bin/sh -D \
+		-G app -u $APP_UID app                  || die "adduser failed"
+else # debian
+	addgroup --gid $APP_GID app                     || die "addgroup failed"
+	adduser --gecos app --shell /bin/bash --disabled-password \
+		--ingroup app --uid $APP_UID app        || die "adduser failed"
+fi
 
 chown -L app:app "$VOLUME_DIR"  || die "chown failed"
 
