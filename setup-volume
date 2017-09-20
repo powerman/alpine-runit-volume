@@ -31,7 +31,7 @@ else # debian
 	addgroup --gid $APP_GID app                     || die "addgroup failed"
 	adduser --gecos app --shell /bin/bash --disabled-password \
 		--ingroup app --uid $APP_UID app        || die "adduser failed"
-fi
+fi >/dev/null
 
 chown -L app:app "$VOLUME_DIR"  || die "chown failed"
 
