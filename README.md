@@ -38,6 +38,9 @@ CMD ["/app/my-pid-1-app"]
 # [OPTIONAL] Change default directory with volume (/data):
 ENV VOLUME_DIR=/app/data
 
+# [OPTIONAL] Move syslog log dir to default volume dir:
+ENV SYSLOG_DIR=/data/log
+
 # [OPTIONAL] Use cron service and setup /app/crontab for user "app":
 RUN set -ex -o pipefail; \
     ln -s /etc/sv/dcron /etc/service/cron; \
@@ -53,6 +56,7 @@ These environment variables can be provided when starting container:
   - I recommend to use values between 1000 and 60000 to avoid conflicts
     with existing accounts.
 - `VOLUME_DIR`: directory with data volume (`/data` by default)
+- `SYSLOG_DIR`: directory with syslog logs (`/var/log` by default)
 
 To run your command using "app" account: `chpst -u app …` (use in your
 service's `./run` and `./finish` scripts).
@@ -72,7 +76,7 @@ exec chpst -u app logger
 ```
 
 Syslog service is enabled by default (unless you'll run your app as PID 1)
-and save logs into `/var/log/`. You can configure maximum log size and
+and save logs into `SYSLOG_DIR`. You can configure maximum log size and
 amount of old rotated log files (10 x 1MB files by default) and other
 features (duplicating selected log records to docker log, sending to
 network syslog by UDP, etc.) using
