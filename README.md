@@ -95,6 +95,7 @@ When container starts `setup-volume` will be executed as `ENTRYPOINT` to:
   - use UID/GID of current owner of root directory of data volume,
     if owner's UID is greater than 0
   - generate random UID/GID between 10000 and 42767 (inclusive)
+  - if `/var/run/docker.sock` exists add user "app" to its group
 - ensure root directory of data volume belongs to user "app"
   - use path for data volume provided in environment variable `VOLUME_DIR`
     or `/data` (if `VOLUME_DIR` is empty)
