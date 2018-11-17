@@ -23,6 +23,15 @@ VOLUME_DIR=${VOLUME_DIR:-/data}
 test -d "$VOLUME_DIR"           || die "no such directory: '$VOLUME_DIR'"
 
 set_app_uidgid
+
+# Fix owner of volume-mount parent dirs inside /home/app.
+mount | grep /home/app/ | cut -d " " -f 3 | while read d; do
+	while test $d != /home/app; do
+		d=$(dirname $d)
+		echo $d
+	done
+done | sort -u | xargs chown $APP_UID:$APP_GID
+
 if test -L $(which adduser); then # alpine
 	addgroup -g $APP_GID app                        || die "addgroup failed"
 	adduser -g app -s /bin/sh -D \
