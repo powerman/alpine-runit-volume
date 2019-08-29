@@ -36,6 +36,7 @@ if test -L $(which adduser); then # alpine
 	addgroup -g $APP_GID app                        || die "addgroup failed"
 	adduser -g app -s /bin/sh -D \
 		-G app -u $APP_UID app                  || die "adduser failed"
+	addgroup app tty
 	if test -S /var/run/docker.sock; then
 		addgroup -g $(stat -c %g /var/run/docker.sock) docker 2>/dev/null
 		addgroup app $(stat -c %G /var/run/docker.sock)
@@ -44,6 +45,7 @@ else # debian
 	addgroup --gid $APP_GID app                     || die "addgroup failed"
 	adduser --gecos app --shell /bin/bash --disabled-password \
 		--ingroup app --uid $APP_UID app        || die "adduser failed"
+	adduser app tty
 	if test -S /var/run/docker.sock; then
 		addgroup --gid $(stat -c %g /var/run/docker.sock) docker 2>/dev/null
 		adduser app $(stat -c %G /var/run/docker.sock)
