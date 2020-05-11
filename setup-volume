@@ -1,58 +1,68 @@
 #!/bin/sh
 die() {
-	echo $0: $1
+	echo "$0: $1"
 	exit 1
 }
 
 set_app_uidgid() {
 	echo "$APP_UID" | grep -q '[^0-9]' && die "APP_UID is not a number: '$APP_UID'"
 	echo "$APP_GID" | grep -q '[^0-9]' && die "APP_GID is not a number: '$APP_GID'"
-	APP_UID=$(( APP_UID ))
-	APP_GID=$(( APP_GID ))
-	if test $APP_UID -eq 0; then
-		APP_UID=$( stat -L -c %u "$VOLUME_DIR" )
-		APP_GID=$( stat -L -c %g "$VOLUME_DIR" )
+	APP_UID="$((APP_UID))"
+	APP_GID="$((APP_GID))"
+	if test "$APP_UID" -eq 0; then
+		APP_UID=$(stat -L -c %u "$VOLUME_DIR")
+		APP_GID=$(stat -L -c %g "$VOLUME_DIR")
 	fi
-	if test $APP_UID -eq 0; then
-		APP_UID=$(( RANDOM + 10000 ))
-		APP_GID=$APP_UID
+	if test "$APP_UID" -eq 0; then
+		if test -n "$(id -u app 2>/dev/null)" -a "$(id -g -n app 2>/dev/null)" = app; then
+			APP_UID="$(id -u app)"
+			APP_GID="$(id -g app)"
+		else
+			APP_UID="$((RANDOM + 10000))"
+			APP_GID="$APP_UID"
+		fi
 	fi
 }
 
-VOLUME_DIR=${VOLUME_DIR:-/data}
-test -d "$VOLUME_DIR"           || die "no such directory: '$VOLUME_DIR'"
+VOLUME_DIR="${VOLUME_DIR:-/data}"
+test -d "$VOLUME_DIR" || die "no such directory: '$VOLUME_DIR'"
 
 set_app_uidgid
 
 # Fix owner of volume-mount and VOLUME_DIR parent dirs inside /home/app.
-{ echo $VOLUME_DIR; mount | cut -d " " -f 3; } | grep /home/app/ | while read d; do
-	while test $d != /home/app; do
-		d=$(dirname $d)
-		echo $d
+{
+	echo "$VOLUME_DIR"
+	mount | cut -d " " -f 3
+} | grep /home/app/ | while read -r d; do
+	while test "$d" != /home/app; do
+		d="$(dirname "$d")"
+		echo "$d"
 	done
-done | sort -u | xargs -r chown -L $APP_UID:$APP_GID
+done | sort -u | xargs -r chown -L "$APP_UID:$APP_GID"
 
-if test -L $(which adduser); then # alpine
-	addgroup -g $APP_GID app                        || die "addgroup failed"
-	adduser -g app -s /bin/sh -D \
-		-G app -u $APP_UID app                  || die "adduser failed"
-	addgroup app tty
-	if test -S /var/run/docker.sock; then
-		addgroup -g $(stat -c %g /var/run/docker.sock) docker 2>/dev/null
-		addgroup app $(stat -c %G /var/run/docker.sock)
-	fi
-else # debian
-	addgroup --gid $APP_GID app                     || die "addgroup failed"
-	adduser --gecos app --shell /bin/bash --disabled-password \
-		--ingroup app --uid $APP_UID app        || die "adduser failed"
-	adduser app tty
-	if test -S /var/run/docker.sock; then
-		addgroup --gid $(stat -c %g /var/run/docker.sock) docker 2>/dev/null
-		adduser app $(stat -c %G /var/run/docker.sock)
-	fi
-fi >/dev/null
+if test "$(id -u app 2>/dev/null)" != "$APP_UID" -o "$(id -g app 2>/dev/null)" != "$APP_GID"; then
+	if test -L "$(command -v adduser)"; then # alpine
+		addgroup -g "$APP_GID" app || die "addgroup failed"
+		adduser -g app -s /bin/sh -D \
+			-G app -u "$APP_UID" app || die "adduser failed"
+		addgroup app tty
+		if test -S /var/run/docker.sock; then
+			addgroup -g "$(stat -c %g /var/run/docker.sock)" docker 2>/dev/null
+			addgroup app "$(stat -c %G /var/run/docker.sock)"
+		fi
+	else # debian
+		addgroup --gid "$APP_GID" app || die "addgroup failed"
+		adduser --gecos app --shell /bin/bash --disabled-password \
+			--ingroup app --uid "$APP_UID" app || die "adduser failed"
+		adduser app tty
+		if test -S /var/run/docker.sock; then
+			addgroup --gid "$(stat -c %g /var/run/docker.sock)" docker 2>/dev/null
+			adduser app "$(stat -c %G /var/run/docker.sock)"
+		fi
+	fi >/dev/null
+fi
 
-chown -L app:app "$VOLUME_DIR"  || die "chown failed"
+chown -L app:app "$VOLUME_DIR" || die "chown failed"
 
 unset VOLUME_DIR APP_UID APP_GID
 exec "$@"

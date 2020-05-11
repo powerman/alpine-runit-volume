@@ -1,5 +1,5 @@
 #!/bin/sh
-test -n "$SYSLOG_DIR" &&
+test -n "$SYSLOG_DIR" -a "$(readlink /var/log)" != "$SYSLOG_DIR" &&
 	mkdir -p "$SYSLOG_DIR" &&
 	rmdir /var/log &&
 	ln -s "$SYSLOG_DIR" /var/log
