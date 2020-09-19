@@ -1,6 +1,14 @@
 # Docker base image to run microservice with a data volume
+
+[![CI](https://github.com/powerman/alpine-runit-volume/workflows/CI/badge.svg?event=push)](https://github.com/powerman/alpine-runit-volume/actions?query=workflow%3ACI%2FCD)
 [![Docker Automated Build](https://img.shields.io/docker/automated/powerman/alpine-runit-volume.svg)](https://github.com/powerman/alpine-runit-volume)
 [![Docker Build Status](https://img.shields.io/docker/build/powerman/alpine-runit-volume.svg)](https://hub.docker.com/r/powerman/alpine-runit-volume/)
+[![Release](https://img.shields.io/github/v/release/powerman/alpine-runit-volume)](https://github.com/powerman/alpine-runit-volume/releases/latest)
+
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
+## Overview
 
 This base docker image is designed to:
 
@@ -25,27 +33,29 @@ This base docker image is designed to:
 ## Usage
 
 ```Dockerfile
-FROM powerman/alpine-runit-volume
-
-# Add your files (/app dir is just an example):
-COPY . /app
-
-# Either setup your runit services to run in /etc/service/:
-RUN ln -nsf /app/service/* /etc/service/
-# or run your microservice as PID1 (without runit):
-CMD ["/app/my-pid-1-app"]
+FROM powerman/alpine-runit-volume:v0.4.0
 
 # [OPTIONAL] Change default directory with volume (/data):
-ENV VOLUME_DIR=/app/data
+ENV VOLUME_DIR=/home/app/var/data
 
 # [OPTIONAL] Move syslog log dir to default volume dir:
-ENV SYSLOG_DIR=/data/log
+ENV SYSLOG_DIR=$VOLUME_DIR/syslog
 
-# [OPTIONAL] Use cron service and setup /app/crontab for user "app":
-RUN set -ex -o pipefail; \
-    ln -s /etc/sv/dcron /etc/service/cron; \
-    install -m 0600 /app/crontab /etc/crontabs/app; \
+# [OPTIONAL] Use anonymous volume if real volume was not provided:
+VOLUME $VOLUME_DIR
+
+# Add your files:
+COPY . .
+
+# [OPTIONAL] Use cron service and setup /home/app/crontab for user "app":
+RUN ln -s /etc/sv/dcron /etc/service/cron; \
+    install -m 0600 /home/app/crontab /etc/crontabs/app; \
     echo app >> /etc/crontabs/cron.update
+
+# Either install your runit services (./init/ directory is just an example):
+RUN ln -nsf "$PWD"/init/* /etc/service/
+# or run your microservice as PID1 (without runit):
+CMD ["my-pid-1-app"]
 ```
 
 These environment variables can be provided when starting container:
@@ -62,7 +72,7 @@ To run your command using "app" account: `chpst -u app …` (use in your
 service's `./run` and `./finish` scripts).
 
 To gracefully shutdown container on essential service exit/crash add to
-that service's `./finish` script (run as root): `sv stop /etc/sv/runsvdir`
+that service's `./finish` script (run as root): `sv down . /etc/sv/runsvdir`
 
 By default, your service's STDOUT/STDERR will be sent to docker logs
 (using "stdout" log stream for both). To redirect your service's STDOUT to
