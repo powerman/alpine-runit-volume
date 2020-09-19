@@ -1,0 +1,30 @@
+name: CI
+
+on:
+  push:
+    branches: master
+  pull_request:
+    branches: master
+
+jobs:
+
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    env:
+      HADOLINT_VER: '1.18.0'
+      SHELLCHECK_VER: '0.7.1'
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Install tools
+        run: |
+          hadolint --version | tee /dev/stderr | grep -wq v$HADOLINT_VER ||
+            curl -sSfL https://github.com/hadolint/hadolint/releases/download/v${HADOLINT_VER}/hadolint-$(uname)-x86_64 | install /dev/stdin /bin/hadolint
+          shellcheck --version | tee /dev/stderr | grep -wq $SHELLCHECK_VER ||
+            curl -sSfL https://github.com/koalaman/shellcheck/releases/download/v${SHELLCHECK_VER}/shellcheck-v${SHELLCHECK_VER}.$(uname).x86_64.tar.xz | tar xJf - -C /bin --strip-components=1 shellcheck-v${SHELLCHECK_VER}/shellcheck
+
+      - name: Lint
+        run: |
+          hadolint Dockerfile
+          find -type f -executable -not -path './.git/*' | xargs shellcheck
