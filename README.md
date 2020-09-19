@@ -6,6 +6,14 @@
 [![Release](https://img.shields.io/github/v/release/powerman/alpine-runit-volume)](https://github.com/powerman/alpine-runit-volume/releases/latest)
 
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+**Table of Contents**
+
+- [Overview](#overview)
+- [Usage](#usage)
+- [How it works](#how-it-works)
+- [Alternatives](#alternatives)
+
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 ## Overview
