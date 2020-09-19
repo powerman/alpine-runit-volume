@@ -1,4 +1,4 @@
 #!/bin/sh
 # Set delay to 15s to make it larger than docker's default 10s.
-sv -w 15 force-shutdown /etc/service/* >/dev/null 2>&1
+sv -w 15 force-stop /etc/service/* >/dev/null 2>&1
 sv x .
