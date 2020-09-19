@@ -19,6 +19,9 @@ jobs:
 
       - name: Install tools
         run: |
+          id
+          echo $PATH
+          ls -ld /bin /usr/bin /usr/local/bin
           hadolint --version | tee /dev/stderr | grep -wq v$HADOLINT_VER ||
             curl -sSfL https://github.com/hadolint/hadolint/releases/download/v${HADOLINT_VER}/hadolint-$(uname)-x86_64 | install /dev/stdin /usr/local/bin/hadolint
           shellcheck --version | tee /dev/stderr | grep -wq $SHELLCHECK_VER ||
