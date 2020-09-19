@@ -18,7 +18,8 @@ set_app_uidgid() {
 			APP_UID="$(id -u app)"
 			APP_GID="$(id -g app)"
 		else
-			APP_UID="$((RANDOM + 10000))"
+			random="$(od -vAn -N2 -td2 </dev/urandom | tr -cd 0-9)" # 0-32767
+			APP_UID="$((random + 10000))"
 			APP_GID="$APP_UID"
 		fi
 	fi
@@ -41,7 +42,7 @@ set_app_uidgid
 done | sort -u | xargs -r chown -L "$APP_UID:$APP_GID"
 
 if test "$(id -u app 2>/dev/null)" != "$APP_UID" -o "$(id -g app 2>/dev/null)" != "$APP_GID"; then
-	if test -L "$(command -v adduser)"; then # alpine
+	if test -L "$(command -v adduser)"; then # Alpine.
 		addgroup -g "$APP_GID" app || die "addgroup failed"
 		adduser -g app -s /bin/sh -D \
 			-G app -u "$APP_UID" app || die "adduser failed"
@@ -50,7 +51,7 @@ if test "$(id -u app 2>/dev/null)" != "$APP_UID" -o "$(id -g app 2>/dev/null)" !
 			addgroup -g "$(stat -c %g /var/run/docker.sock)" docker 2>/dev/null
 			addgroup app "$(stat -c %G /var/run/docker.sock)"
 		fi
-	else # debian
+	else # Debian.
 		addgroup --gid "$APP_GID" app || die "addgroup failed"
 		adduser --gecos app --shell /bin/bash --disabled-password \
 			--ingroup app --uid "$APP_UID" app || die "adduser failed"
