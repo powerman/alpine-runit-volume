@@ -20,9 +20,9 @@ jobs:
       - name: Install tools
         run: |
           hadolint --version | tee /dev/stderr | grep -wq v$HADOLINT_VER ||
-            curl -sSfL https://github.com/hadolint/hadolint/releases/download/v${HADOLINT_VER}/hadolint-$(uname)-x86_64 | install /dev/stdin /bin/hadolint
+            curl -sSfL https://github.com/hadolint/hadolint/releases/download/v${HADOLINT_VER}/hadolint-$(uname)-x86_64 | sudo install /dev/stdin /usr/local/bin/hadolint
           shellcheck --version | tee /dev/stderr | grep -wq $SHELLCHECK_VER ||
-            curl -sSfL https://github.com/koalaman/shellcheck/releases/download/v${SHELLCHECK_VER}/shellcheck-v${SHELLCHECK_VER}.$(uname).x86_64.tar.xz | tar xJf - -C /bin --strip-components=1 shellcheck-v${SHELLCHECK_VER}/shellcheck
+            curl -sSfL https://github.com/koalaman/shellcheck/releases/download/v${SHELLCHECK_VER}/shellcheck-v${SHELLCHECK_VER}.$(uname).x86_64.tar.xz | sudo tar xJf - -C /usr/local/bin --strip-components=1 shellcheck-v${SHELLCHECK_VER}/shellcheck
 
       - name: Lint
         run: |
