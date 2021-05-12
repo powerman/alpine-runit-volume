@@ -15,7 +15,7 @@ jobs:
       HADOLINT_VER: '1.18.0'
       SHELLCHECK_VER: '0.7.1'
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v2.3.4
 
       - name: Install tools
         run: |
