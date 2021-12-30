@@ -46,7 +46,7 @@ jobs:
 
       - name: Upload to DockerHub Container Registry
         run: |
-          docker build -t "$(basename $(go list -m))" .
+          docker build -t "$(basename ${GITHUB_REPOSITORY,,})" .
           docker login -u '${{ secrets.CR_USER }}' -p '${{ secrets.CR_PAT }}'
           if echo "$GITHUB_REF" | grep -q '^refs/tags/v'; then
             TAGS="${GITHUB_REF/refs\/tags\/v}"
@@ -55,7 +55,7 @@ jobs:
             TAGS="latest"
           fi
           for TAG in $TAGS; do
-            IMAGE_TAG="${GITHUB_REPOSITORY,,*}:$TAG"
-            docker tag "$(basename $(go list -m))" "$IMAGE_TAG"
+            IMAGE_TAG="${{ secrets.CR_USER }}/$(basename ${GITHUB_REPOSITORY,,}):$TAG"
+            docker tag "$(basename ${GITHUB_REPOSITORY,,})" "$IMAGE_TAG"
             docker push "$IMAGE_TAG"
           done
