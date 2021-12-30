@@ -4,7 +4,11 @@ updates:
     directory: '/'
     schedule:
       interval: 'daily'
+    commit-message:
+      prefix: 'chore(ci):'
   - package-ecosystem: 'docker'
     directory: '/'
     schedule:
       interval: 'daily'
+    commit-message:
+      prefix: 'chore(deps):'

@@ -1,0 +1,61 @@
+name: CI/CD
+
+on:
+  push:
+    tags: v*
+  pull_request:
+    branches: master
+
+jobs:
+
+  test:
+    runs-on: 'ubuntu-latest'
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v2.3.4
+
+      - name: Install tools
+        env:
+          HADOLINT_VER: '2.7.0'
+          SHELLCHECK_VER: '0.8.0'
+        run: |
+          hadolint --version | tee /dev/stderr | grep -wq $HADOLINT_VER ||
+            curl -sSfL https://github.com/hadolint/hadolint/releases/download/v${HADOLINT_VER}/hadolint-$(uname)-x86_64 | sudo install /dev/stdin /usr/local/bin/hadolint
+          shellcheck --version | tee /dev/stderr | grep -wq $SHELLCHECK_VER ||
+            curl -sSfL https://github.com/koalaman/shellcheck/releases/download/v${SHELLCHECK_VER}/shellcheck-v${SHELLCHECK_VER}.$(uname).x86_64.tar.xz | sudo tar xJf - -C /usr/local/bin --strip-components=1 shellcheck-v${SHELLCHECK_VER}/shellcheck
+
+      - name: Lint
+        run: |
+          hadolint Dockerfile
+          find -type f -executable -not -path './.git/*' | xargs shellcheck
+
+  build-and-release:
+    needs: test
+    runs-on: 'ubuntu-latest'
+    timeout-minutes: 30
+    if: github.event_name == 'push'
+    steps:
+      - uses: actions/checkout@v2.3.4
+
+      - name: Turnstyle
+        uses: softprops/turnstyle@v1
+        with:
+          poll-interval-seconds: 3
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload to DockerHub Container Registry
+        run: |
+          docker build -t "$(basename $(go list -m))" .
+          docker login -u '${{ secrets.CR_USER }}' -p '${{ secrets.CR_PAT }}'
+          if echo "$GITHUB_REF" | grep -q '^refs/tags/v'; then
+            TAGS="${GITHUB_REF/refs\/tags\/v}"
+          else
+            #TAGS="$GITHUB_SHA latest"
+            TAGS="latest"
+          fi
+          for TAG in $TAGS; do
+            IMAGE_TAG="${GITHUB_REPOSITORY,,*}:$TAG"
+            docker tag "$(basename $(go list -m))" "$IMAGE_TAG"
+            docker push "$IMAGE_TAG"
+          done

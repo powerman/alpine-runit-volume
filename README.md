@@ -1,9 +1,8 @@
 # Docker base image to run microservice with a data volume
 
+[![Release](https://img.shields.io/github/v/release/powerman/alpine-runit-volume.svg)](https://github.com/powerman/alpine-runit-volume/releases/latest)
+[![Docker Automated Build](https://img.shields.io/docker/automated/powerman/alpine-runit-volume.svg)](https://hub.docker.com/r/powerman/alpine-runit-volume/tags)
 [![CI](https://github.com/powerman/alpine-runit-volume/workflows/CI/badge.svg?event=push)](https://github.com/powerman/alpine-runit-volume/actions?query=workflow%3ACI%2FCD)
-[![Docker Automated Build](https://img.shields.io/docker/automated/powerman/alpine-runit-volume.svg)](https://github.com/powerman/alpine-runit-volume)
-[![Docker Build Status](https://img.shields.io/docker/build/powerman/alpine-runit-volume.svg)](https://hub.docker.com/r/powerman/alpine-runit-volume/)
-[![Release](https://img.shields.io/github/v/release/powerman/alpine-runit-volume)](https://github.com/powerman/alpine-runit-volume/releases/latest)
 
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
