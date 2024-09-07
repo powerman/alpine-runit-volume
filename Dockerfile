@@ -1,4 +1,4 @@
-FROM alpine:3.15.0
+FROM alpine:3.19
 SHELL ["/bin/ash","-e","-o","pipefail","-x","-c"]
 
 COPY sv /etc/sv/
